@@ -155,28 +155,160 @@ Puppet Agent (/etc/puppetlabs/)
 
 ## 🧰 Prerequisites
 
-### AWS
+### **AWS Requirements**
 
 * 2 EC2 instances
 * Ubuntu 20.04 / 22.04 LTS
 * Same VPC (recommended)
+* Same Availability Zone (optional, for lower latency)
 
-### Security Group Rules
+### **Recommended Instance Types**
 
-| Port | Purpose       |
-| ---- | ------------- |
-| 22   | SSH           |
-| 80   | HTTP (Apache) |
-| 8140 | Puppet        |
+#### **💰 Budget-Friendly (Development/Learning)**
+```
+┌─────────────────┬─────────────────┬─────────────────────────────────┐
+│   Instance      │   Instance Type │         Specifications          │
+├─────────────────┼─────────────────┼─────────────────────────────────┤
+│ Puppet Server   │    t3.small     │ 2 vCPU, 2 GB RAM, $15/month    │
+│ Puppet Agent    │    t3.micro     │ 2 vCPU, 1 GB RAM, $8/month     │
+├─────────────────┼─────────────────┼─────────────────────────────────┤
+│ Total Cost      │      ~$23/month │ Good for learning/testing       │
+└─────────────────┴─────────────────┴─────────────────────────────────┘
+```
+
+#### **🚀 Production-Ready (Small Scale)**
+```
+┌─────────────────┬─────────────────┬─────────────────────────────────┐
+│   Instance      │   Instance Type │         Specifications          │
+├─────────────────┼─────────────────┼─────────────────────────────────┤
+│ Puppet Server   │    t3.medium    │ 2 vCPU, 4 GB RAM, $30/month    │
+│ Puppet Agent    │    t3.small     │ 2 vCPU, 2 GB RAM, $15/month    │
+├─────────────────┼─────────────────┼─────────────────────────────────┤
+│ Total Cost      │      ~$45/month │ Handles multiple agents         │
+└─────────────────┴─────────────────┴─────────────────────────────────┘
+```
+
+#### **⚡ High Performance (Enterprise)**
+```
+┌─────────────────┬─────────────────┬─────────────────────────────────┐
+│   Instance      │   Instance Type │         Specifications          │
+├─────────────────┼─────────────────┼─────────────────────────────────┤
+│ Puppet Server   │    m5.large     │ 2 vCPU, 8 GB RAM, $70/month    │
+│ Puppet Agent    │    t3.medium    │ 2 vCPU, 4 GB RAM, $30/month    │
+├─────────────────┼─────────────────┼─────────────────────────────────┤
+│ Total Cost      │     ~$100/month │ Supports 50+ agents             │
+└─────────────────┴─────────────────┴─────────────────────────────────┘
+```
+
+### **Resource Requirements**
+
+#### **Puppet Server Minimum Specs:**
+- **CPU**: 2 cores (4 recommended for production)
+- **RAM**: 2 GB minimum (4-8 GB recommended)
+- **Disk**: 20 GB (SSD preferred for better I/O)
+- **Network**: Stable connection for port 8140
+
+#### **Puppet Agent Minimum Specs:**
+- **CPU**: 1 core (2 recommended)
+- **RAM**: 1 GB minimum (2 GB recommended)
+- **Disk**: 10 GB (for logs and temporary files)
+- **Network**: Reliable connection to Puppet Server
+
+### **Instance Selection Guide**
+
+| **Use Case**           | **Server Type** | **Agent Type** | **Best For**                    |
+|------------------------|-----------------|----------------|---------------------------------|
+| **Learning/Tutorial**  | t3.micro        | t3.nano        | Cost-effective learning         |
+| **Development**        | t3.small        | t3.micro       | Single developer testing        |
+| **Small Production**   | t3.medium       | t3.small       | 5-10 managed nodes             |
+| **Medium Production**  | m5.large        | t3.medium      | 10-50 managed nodes            |
+| **Large Production**   | m5.xlarge       | m5.large       | 50+ managed nodes              |
+
+### **💡 Cost Optimization Tips**
+
+- **Spot Instances**: Use for development (up to 90% savings)
+- **Reserved Instances**: 1-year term saves ~40% for production
+- **Free Tier**: t2.micro available for first 12 months (AWS Free Tier)
+- **Stop Instances**: When not in use to avoid charges
+- **Monitoring**: Use CloudWatch to track resource utilization
+
+### **Security Group Rules**
+
+| Port | Purpose       | Source          | Notes                    |
+| ---- | ------------- | --------------- | ------------------------ |
+| 22   | SSH           | Your IP/CIDR    | Administrative access    |
+| 80   | HTTP (Apache) | 0.0.0.0/0       | Web server access        |
+| 8140 | Puppet        | Agent Security  | Puppet communication     |
+|      |               | Group           |                          |
 
 ---
 
-## 🖥️ EC2 Instances
+## 🖥️ EC2 Instance Configuration
 
-| Instance | Role          |
-| -------- | ------------- |
-| EC2-1    | Puppet Server |
-| EC2-2    | Puppet Agent  |
+### **Recommended Setup for This Project**
+
+| Instance | Role          | Instance Type | vCPU | RAM  | Storage | Est. Cost/Month |
+| -------- | ------------- | ------------- | ---- | ---- | ------- | --------------- |
+| EC2-1    | Puppet Server | t3.small      | 2    | 2 GB | 20 GB   | ~$15            |
+| EC2-2    | Puppet Agent  | t3.micro      | 2    | 1 GB | 10 GB   | ~$8             |
+
+**Total Estimated Cost: ~$23/month**
+
+### **Launch Configuration**
+
+#### **Both Instances:**
+- **AMI**: Ubuntu Server 22.04 LTS
+- **Key Pair**: Create/Select your SSH key
+- **VPC**: Use default or create custom
+- **Subnet**: Public subnet for internet access
+- **Auto-assign Public IP**: Enable
+- **Storage**: General Purpose SSD (gp3)
+
+#### **Security Groups Setup:**
+```bash
+# Create Puppet Server Security Group
+aws ec2 create-security-group \
+  --group-name puppet-server-sg \
+  --description "Puppet Server Security Group"
+
+# Add rules for Puppet Server
+aws ec2 authorize-security-group-ingress \
+  --group-name puppet-server-sg \
+  --protocol tcp --port 22 --cidr 0.0.0.0/0    # SSH
+  
+aws ec2 authorize-security-group-ingress \
+  --group-name puppet-server-sg \
+  --protocol tcp --port 8140 --cidr 10.0.0.0/16  # Puppet (VPC CIDR)
+
+# Create Puppet Agent Security Group  
+aws ec2 create-security-group \
+  --group-name puppet-agent-sg \
+  --description "Puppet Agent Security Group"
+
+# Add rules for Puppet Agent
+aws ec2 authorize-security-group-ingress \
+  --group-name puppet-agent-sg \
+  --protocol tcp --port 22 --cidr 0.0.0.0/0    # SSH
+  
+aws ec2 authorize-security-group-ingress \
+  --group-name puppet-agent-sg \
+  --protocol tcp --port 80 --cidr 0.0.0.0/0    # HTTP
+```
+
+### **Alternative Instance Types by Use Case**
+
+#### **🧪 Free Tier (Learning)**
+- **Server**: t2.micro (1 vCPU, 1 GB) - Limited performance
+- **Agent**: t2.micro (1 vCPU, 1 GB) - Free for 12 months
+- **Note**: May be slow but functional for learning
+
+#### **💼 Production (Small Team)**
+- **Server**: t3.medium (2 vCPU, 4 GB) - Handles 10-20 agents
+- **Agent**: t3.small (2 vCPU, 2 GB) - Better performance
+
+#### **🏢 Enterprise (Large Scale)**
+- **Server**: m5.large+ (2+ vCPU, 8+ GB) - Supports 50+ agents
+- **Agent**: t3.medium (2 vCPU, 4 GB) - Production workloads
 
 ---
 
