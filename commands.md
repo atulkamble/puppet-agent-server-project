@@ -1,8 +1,14 @@
-```
+# Puppet Manual Setup Commands
+
+## Infrastructure Requirements
+
 1. launch 2 instances | t3.medium | puppet.pem 
 2. puppet-server, puppet-agent 
 3. SG - 8140, 22. 80
 
+## Puppet Server Setup Commands
+
+```bash
 sudo apt update -y
 sudo apt install -y wget
 wget https://apt.puppet.com/puppet7-release-focal.deb
@@ -32,7 +38,11 @@ cd puppet-apache
 cd manifests
 
 touch site.pp
+```
 
+### site.pp Content
+
+```puppet
 node 'puppetagent' {
 
   package { 'apache2':
@@ -54,9 +64,11 @@ node 'puppetagent' {
   }
 
 }
+```
 
+## Puppet Agent Setup Commands
 
-
+```bash
 // on agent 
 
 sudo apt update
@@ -68,20 +80,20 @@ sudo apt install -y puppet-agent
 echo 'export PATH=$PATH:/opt/puppetlabs/bin' >> ~/.bashrc
 source ~/.bashrc
 
-
 sudo hostnamectl set-hostname puppetagent
 sudo /opt/puppetlabs/bin/puppet agent -t
+```
 
+## Instance Details
 
-
-
+### Server Instance
+```
 i-0d58a7d3956e6d4f9 (server)
 PublicIPs: 34.230.29.197    PrivateIPs: 172.31.24.198    
+```
 
-
+### Agent Instance
+```
 i-0d4b78d801167ee2f (agent)
 PublicIPs: 98.94.87.179    PrivateIPs: 172.31.17.211    
-
-
-
 ```

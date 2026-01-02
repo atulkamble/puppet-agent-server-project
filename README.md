@@ -1,71 +1,71 @@
-# 🐘 Puppet Agent–Server Project on Ubuntu EC2
+# Puppet Agent-Server Infrastructure with Terraform
 
-## 📌 Overview
+This project automatically provisions and configures Puppet infrastructure on AWS using Terraform.
 
-This project demonstrates a **complete Puppet Agent–Server setup** using **Ubuntu EC2 instances**.
-The Puppet Server centrally manages configuration and enforces desired state on Puppet Agent nodes.
+## 🚀 Quick Start
 
-The project provisions **Apache Web Server** on an agent node using **Puppet manifests**, showcasing real-world **Infrastructure as Code (IaC)** and **Configuration Management** concepts.
+### Prerequisites
+- Terraform installed
+- AWS CLI configured
+- Key pair `puppet.pem` in project directory
 
-## 🖥️ Instance Configuration
+### Deploy Infrastructure
 
-**Instance Type**: t3.medium  
-**Key Pair**: puppet.pem  
-**Security Group Ports**: 8140, 22, 80
-
-### Server Instance
-- **Instance ID**: i-0d58a7d3956e6d4f9
-- **Public IP**: 34.230.29.197
-- **Private IP**: 172.31.24.198
-- **Role**: Puppet Server
-
-### Agent Instance  
-- **Instance ID**: i-0d4b78d801167ee2f
-- **Public IP**: 98.94.87.179
-- **Private IP**: 172.31.17.211
-- **Role**: Puppet Agent
-
----
-
-## 🏗️ Architecture Overview
-
-### **High-Level Architecture**
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        AWS Cloud (VPC)                         │
-├─────────────────────────────────┬───────────────────────────────┤
-│         Puppet Server           │         Puppet Agent          │
-│        (EC2 Instance)           │        (EC2 Instance)         │
-├─────────────────────────────────┼───────────────────────────────┤
-│  ┌─────────────────────────┐    │   ┌─────────────────────────┐ │
-│  │    Puppet Server        │    │   │     Puppet Agent        │ │
-│  │     (Port 8140)         │◄──────►│    (Client Service)     │ │
-│  └─────────────────────────┘    │   └─────────────────────────┘ │
-│  ┌─────────────────────────┐    │   ┌─────────────────────────┐ │
-│  │   Certificate           │    │   │    Apache Web Server    │ │
-│  │   Authority (CA)        │    │   │     (Port 80)          │ │
-│  └─────────────────────────┘    │   └─────────────────────────┘ │
-│  ┌─────────────────────────┐    │   ┌─────────────────────────┐ │
-│  │    Puppet Manifests     │    │   │   /var/www/html/        │ │
-│  │     (site.pp)           │    │   │    index.html           │ │
-│  └─────────────────────────┘    │   └─────────────────────────┘ │
-└─────────────────────────────────┴───────────────────────────────┘
+1. **Initialize Terraform:**
+```bash
+terraform init
 ```
 
-### **Communication Flow**
+2. **Plan deployment:**
+```bash
+terraform plan
 ```
-┌──────────────┐                 ┌──────────────┐
-│ Puppet Agent │                 │Puppet Server │
-└──────┬───────┘                 └──────┬───────┘
-       │                                │
-       │ 1. Certificate Request         │
-       ├──────────────────────────────► │
-       │                                │
-       │ 2. Certificate Response        │
-       ◄────────────────────────────────┤
-       │                                │
-       │ 3. Catalog Request            │
-       ├──────────────────────────────► │
+
+3. **Deploy infrastructure:**
+```bash
+terraform apply
+```
+
+4. **Access your Apache server:**
+```bash
+# Get the agent's public IP from outputs
+terraform output apache_url
+```
+
+### Cleanup
+```bash
+terraform destroy
+```
+
+## 🏗️ What Gets Deployed
+
+- **2 Ubuntu EC2 instances** (t3.medium)
+- **Security Group** with ports 22, 80, 8140
+- **Puppet Server** with Apache manifest
+- **Puppet Agent** with automated Apache installation
+- **Automated certificate signing**
+
+## 📋 Configuration
+
+Modify `variables.tf` to customize:
+- AWS region
+- Instance type
+- Key pair name
+- Private key path
+
+## 🔍 Outputs
+
+After deployment, Terraform provides:
+- Server and agent IP addresses
+- SSH commands
+- Apache URL
+
+## ⚡ Automation Features
+
+- Fully automated Puppet installation
+- Certificate management
+- Apache deployment
+- No manual intervention required
        │                                │
        │ 4. Compiled Catalog           │
        ◄────────────────────────────────┤
