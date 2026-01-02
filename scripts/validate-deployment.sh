@@ -2,6 +2,7 @@
 
 # Validation Script - Run after complete setup
 # Validates the entire Puppet Agent-Server deployment
+# For instances: Server (i-0d58a7d3956e6d4f9) & Agent (i-0d4b78d801167ee2f)
 
 set -e
 
@@ -14,14 +15,18 @@ NC='\033[0m'
 
 echo -e "${YELLOW}🔍 Puppet Project Validation Script${NC}"
 echo "====================================="
+echo "🎯 Server IP: 172.31.24.198 (i-0d58a7d3956e6d4f9)"
+echo "🎯 Agent IP: 172.31.17.211 (i-0d4b78d801167ee2f)"
+echo ""
 
 # Check if running on agent
 if ! systemctl list-units --full -all | grep -Fq "puppet.service"; then
     echo -e "${RED}❌ This script should run on the Puppet Agent${NC}"
+    echo "💡 SSH to agent: ssh -i puppet.pem ubuntu@98.94.87.179"
     exit 1
 fi
 
-echo -e "${BLUE}📍 Running validation on Puppet Agent${NC}"
+echo -e "${BLUE}📍 Running validation on Puppet Agent (i-0d4b78d801167ee2f)${NC}"
 echo ""
 
 # Function to validate step

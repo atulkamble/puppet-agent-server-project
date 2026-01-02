@@ -7,6 +7,24 @@ The Puppet Server centrally manages configuration and enforces desired state on 
 
 The project provisions **Apache Web Server** on an agent node using **Puppet manifests**, showcasing real-world **Infrastructure as Code (IaC)** and **Configuration Management** concepts.
 
+## 🖥️ Instance Configuration
+
+**Instance Type**: t3.medium  
+**Key Pair**: puppet.pem  
+**Security Group Ports**: 8140, 22, 80
+
+### Server Instance
+- **Instance ID**: i-0d58a7d3956e6d4f9
+- **Public IP**: 34.230.29.197
+- **Private IP**: 172.31.24.198
+- **Role**: Puppet Server
+
+### Agent Instance  
+- **Instance ID**: i-0d4b78d801167ee2f
+- **Public IP**: 98.94.87.179
+- **Private IP**: 172.31.17.211
+- **Role**: Puppet Agent
+
 ---
 
 ## 🏗️ Architecture Overview

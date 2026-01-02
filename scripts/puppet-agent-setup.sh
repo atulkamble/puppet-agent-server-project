@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Puppet Agent Setup Script
+# Puppet Agent Setup Script for Ubuntu
 # Run this on the EC2 instance designated as Puppet Agent
+# Instance: i-0d4b78d801167ee2f (98.94.87.179 / 172.31.17.211)
 # Usage: ./puppet-agent-setup.sh <PUPPET_SERVER_IP>
 
 set -e
@@ -9,6 +10,7 @@ set -e
 if [ $# -eq 0 ]; then
     echo "❌ Error: Please provide the Puppet Server IP address"
     echo "Usage: $0 <PUPPET_SERVER_IP>"
+    echo "Example: $0 172.31.24.198"
     exit 1
 fi
 
@@ -16,13 +18,18 @@ PUPPET_SERVER_IP=$1
 
 echo "🟢 Starting Puppet Agent Setup..."
 echo "🎯 Puppet Server IP: $PUPPET_SERVER_IP"
+echo "📋 Agent Instance Details:"
+echo "   Instance ID: i-0d4b78d801167ee2f"
+echo "   Public IP: 98.94.87.179"
+echo "   Private IP: 172.31.17.211"
+echo ""
 
 # Update system
 echo "📦 Updating system packages..."
 sudo apt update
 
-# Download and install Puppet repository
-echo "📥 Adding Puppet repository..."
+# Download and install Puppet 7 repository
+echo "📥 Adding Puppet 7 repository..."
 wget https://apt.puppet.com/puppet7-release-focal.deb
 sudo dpkg -i puppet7-release-focal.deb
 sudo apt update
@@ -30,6 +37,11 @@ sudo apt update
 # Install Puppet Agent
 echo "🔧 Installing Puppet Agent..."
 sudo apt install -y puppet-agent
+
+# Add Puppet to PATH
+echo "🛤️ Adding Puppet to PATH..."
+echo 'export PATH=$PATH:/opt/puppetlabs/bin' >> ~/.bashrc
+export PATH=$PATH:/opt/puppetlabs/bin
 
 # Set hostname
 echo "🏷️ Setting hostname..."
@@ -52,11 +64,6 @@ report = true
 pluginsync = true
 EOF
 
-# Add Puppet to PATH
-echo "🛤️ Adding Puppet to PATH..."
-echo 'export PATH=$PATH:/opt/puppetlabs/bin' | sudo tee -a /etc/profile
-export PATH=$PATH:/opt/puppetlabs/bin
-
 # Enable Puppet Agent service
 echo "🚀 Enabling Puppet Agent service..."
 sudo systemctl enable puppet
@@ -68,7 +75,7 @@ sudo /opt/puppetlabs/bin/puppet agent -t --verbose || echo "⚠️ Expected: Cer
 echo "🎉 Puppet Agent setup complete!"
 echo ""
 echo "📋 Next steps:"
-echo "   1. On Puppet Server, run: sudo /opt/puppetlabs/bin/puppetserver ca list"
+echo "   1. On Puppet Server (172.31.24.198), run: sudo /opt/puppetlabs/bin/puppetserver ca list"
 echo "   2. On Puppet Server, run: sudo /opt/puppetlabs/bin/puppetserver ca sign --all"
 echo "   3. On this agent, run: sudo /opt/puppetlabs/bin/puppet agent -t"
 echo ""
